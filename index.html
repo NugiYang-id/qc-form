@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QC Form - Quality Control</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.5/dist/sweetalert2.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Loading Spinner -->
+    <div class="spinner-overlay" id="loadingSpinner">
+        <div class="spinner"></div>
+    </div>
+
+    <div class="form-container">
+        <div class="form-header">
+            <h1><i class="fas fa-clipboard-check"></i> Quality Control Form</h1>
+            <p>Inspection Data Entry System</p>
+        </div>
+
+        <div class="form-body">
+            <h2 class="section-title">Section 1: Identification Data</h2>
+            
+            <form id="qcForm">
+                <!-- Checker Name -->
+                <div class="mb-4">
+                    <label for="checkerName" class="form-label">
+                        Checker Name <span class="required">*</span>
+                    </label>
+                    <select id="checkerName" name="checkerName" class="form-select" required>
+                        <option value="">-- Select Checker --</option>
+                        <option value="John Doe">John Doe</option>
+                        <option value="Jane Smith">Jane Smith</option>
+                        <option value="Michael Chen">Michael Chen</option>
+                        <option value="Sarah Johnson">Sarah Johnson</option>
+                        <option value="David Martinez">David Martinez</option>
+                    </select>
+                </div>
+
+                <!-- Shift -->
+                <div class="mb-4">
+                    <label for="shift" class="form-label">
+                        Shift <span class="required">*</span>
+                    </label>
+                    <select id="shift" name="shift" class="form-select" required>
+                        <option value="">-- Select Shift --</option>
+                        <option value="Morning (06:00 - 14:00)">Morning (06:00 - 14:00)</option>
+                        <option value="Afternoon (14:00 - 22:00)">Afternoon (14:00 - 22:00)</option>
+                        <option value="Night (22:00 - 06:00)">Night (22:00 - 06:00)</option>
+                    </select>
+                </div>
+
+                <!-- Product Item -->
+                <div class="mb-4">
+                    <label for="productItem" class="form-label">
+                        Product Item <span class="required">*</span>
+                    </label>
+                    <select id="productItem" name="productItem" class="form-select" required>
+                        <option value="">-- Select Product --</option>
+                        <option value="Product A">Product A</option>
+                        <option value="Product B">Product B</option>
+                        <option value="Product C">Product C</option>
+                        <option value="Product D">Product D</option>
+                        <option value="Product E">Product E</option>
+                    </select>
+                </div>
+
+                <!-- Production Code -->
+                <div class="mb-4">
+                    <label class="form-label">
+                        Production Code <span class="required">*</span>
+                    </label>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <span class="code-label">P Code (Line 1)</span>
+                            <input type="text" id="pCode" name="pCode" class="form-control" placeholder="Enter P Code" required>
+                        </div>
+                        <div class="col-md-6">
+                            <span class="code-label">E Code (Line 2)</span>
+                            <input type="text" id="eCode" name="eCode" class="form-control" placeholder="Enter E Code" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Production Date -->
+                <div class="mb-4">
+                    <label for="prodDate" class="form-label">
+                        Production Date <span class="required">*</span>
+                    </label>
+                    <input type="date" id="prodDate" name="prodDate" class="form-control" required>
+                </div>
+
+                <!-- Expiration Date -->
+                <div class="mb-4">
+                    <label for="expDate" class="form-label">
+                        Expiration Date <span class="required">*</span>
+                    </label>
+                    <input type="date" id="expDate" name="expDate" class="form-control" required>
+                </div>
+            </form>
+        </div>
+
+        <div class="button-group">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <button type="button" class="btn btn-custom-secondary w-100" onclick="resetForm()">
+                        <i class="fas fa-redo me-2"></i>Reset
+                    </button>
+                </div>
+                <div class="col-md-6">
+                    <button type="button" class="btn btn-custom-primary w-100" onclick="submitForm()">
+                        <i class="fas fa-paper-plane me-2"></i>Submit Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.5/dist/sweetalert2.all.min.js"></script>
+    <!-- Custom JavaScript -->
+    <script src="js/script.js"></script>
+</body>
+</html>

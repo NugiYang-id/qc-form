@@ -1,0 +1,234 @@
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+    font-size: 16px;
+}
+
+/* Form Container */
+.form-container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+/* Header */
+.form-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 35px 25px;
+    text-align: center;
+}
+
+.form-header h1 {
+    font-size: 36px;
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+
+.form-header p {
+    font-size: 18px;
+    opacity: 0.95;
+}
+
+/* Form Body */
+.form-body {
+    padding: 35px 30px;
+}
+
+.section-title {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 25px;
+    padding-bottom: 12px;
+    border-bottom: 3px solid #667eea;
+    font-weight: 600;
+}
+
+/* Form Elements */
+.form-label {
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 10px;
+    font-size: 17px;
+}
+
+.required {
+    color: #dc3545;
+    font-size: 18px;
+}
+
+.form-control, .form-select {
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 16px 18px;
+    font-size: 17px;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+}
+
+.code-label {
+    font-size: 15px;
+    color: #777;
+    margin-bottom: 6px;
+    display: block;
+    font-weight: 500;
+}
+
+/* Buttons */
+.btn-custom-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 16px 28px;
+    font-size: 18px;
+    font-weight: 600;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.btn-custom-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    color: white;
+}
+
+.btn-custom-secondary {
+    background: #f0f0f0;
+    color: #555;
+    border: none;
+    padding: 16px 28px;
+    font-size: 18px;
+    font-weight: 600;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.btn-custom-secondary:hover {
+    background: #e0e0e0;
+}
+
+.button-group {
+    padding: 0 30px 35px 30px;
+}
+
+/* Loading Spinner */
+.spinner-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
+
+.spinner-overlay.active {
+    display: flex;
+}
+
+.spinner {
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #667eea;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    body {
+        padding: 15px;
+    }
+
+    .form-header h1 {
+        font-size: 28px;
+    }
+
+    .form-header p {
+        font-size: 16px;
+    }
+
+    .form-body {
+        padding: 25px 20px;
+    }
+
+    .section-title {
+        font-size: 20px;
+    }
+
+    .form-label {
+        font-size: 16px;
+    }
+
+    .form-control, .form-select {
+        font-size: 16px;
+        padding: 14px 16px;
+    }
+
+    .button-group {
+        padding: 0 20px 25px 20px;
+    }
+
+    .btn-custom-primary,
+    .btn-custom-secondary {
+        font-size: 17px;
+        padding: 14px 24px;
+    }
+}
+
+@media (max-width: 576px) {
+    body {
+        padding: 10px;
+    }
+
+    .form-container {
+        border-radius: 12px;
+    }
+
+    .form-header {
+        padding: 25px 20px;
+    }
+
+    .form-header h1 {
+        font-size: 24px;
+    }
+
+    .form-header p {
+        font-size: 15px;
+    }
+
+    .form-body {
+        padding: 20px 15px;
+    }
+
+    .button-group {
+        padding: 0 15px 20px 15px;
+    }
+}
