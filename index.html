@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QC Form - Quality Control</title>
+    <title>Finish Goods Monitoring Form</title>
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -22,48 +22,43 @@
 
     <div class="form-container">
         <div class="form-header">
-            <h1><i class="fas fa-clipboard-check"></i> Quality Control Form</h1>
-            <p>Inspection Data Entry System</p>
+            <h1><i class="fas fa-clipboard-check"></i> Finish Goods Monitoring Form</h1>
+            <p>Quality Control Inspection System</p>
         </div>
 
         <div class="form-body">
-            <h2 class="section-title">Section 1: Identification Data</h2>
+            <!-- SECTION 1: IDENTITY & STANDARD -->
+            <h2 class="section-title">Section 1: Identity & Standard</h2>
             
             <form id="qcForm">
-                <!-- Checker Name -->
-                <div class="mb-4">
-                    <label for="checkerName" class="form-label">
-                        Checker Name <span class="required">*</span>
+                <!-- Form Number -->
+                <div class="mb-3">
+                    <label for="formNumber" class="form-label">
+                        Form Number <span class="required">*</span>
                     </label>
-                    <select id="checkerName" name="checkerName" class="form-select" required>
-                        <option value="">-- Select Checker --</option>
-                        <option value="John Doe">John Doe</option>
-                        <option value="Jane Smith">Jane Smith</option>
-                        <option value="Michael Chen">Michael Chen</option>
-                        <option value="Sarah Johnson">Sarah Johnson</option>
-                        <option value="David Martinez">David Martinez</option>
-                    </select>
+                    <input type="text" id="formNumber" name="formNumber" class="form-control" 
+                           placeholder="e.g., 001/PG/XI/2025" required>
                 </div>
 
-                <!-- Shift -->
-                <div class="mb-4">
-                    <label for="shift" class="form-label">
-                        Shift <span class="required">*</span>
-                    </label>
-                    <select id="shift" name="shift" class="form-select" required>
-                        <option value="">-- Select Shift --</option>
-                        <option value="Morning (06:00 - 14:00)">Morning (06:00 - 14:00)</option>
-                        <option value="Afternoon (14:00 - 22:00)">Afternoon (14:00 - 22:00)</option>
-                        <option value="Night (22:00 - 06:00)">Night (22:00 - 06:00)</option>
-                    </select>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="checkDate" class="form-label">Date <span class="required">*</span></label>
+                        <input type="date" id="checkDate" name="checkDate" class="form-control" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="shift" class="form-label">Shift <span class="required">*</span></label>
+                        <select id="shift" name="shift" class="form-select" required>
+                            <option value="">-- Select Shift --</option>
+                            <option value="Morning (06:00 - 14:00)">Morning (06:00 - 14:00)</option>
+                            <option value="Afternoon (14:00 - 22:00)">Afternoon (14:00 - 22:00)</option>
+                            <option value="Night (22:00 - 06:00)">Night (22:00 - 06:00)</option>
+                        </select>
+                    </div>
                 </div>
 
-                <!-- Product Item -->
-                <div class="mb-4">
-                    <label for="productItem" class="form-label">
-                        Product Item <span class="required">*</span>
-                    </label>
-                    <select id="productItem" name="productItem" class="form-select" required>
+                <div class="mb-3">
+                    <label for="productItem" class="form-label">Item/Product <span class="required">*</span></label>
+                    <select id="productItem" name="productItem" class="form-select" required onchange="populateStandards()">
                         <option value="">-- Select Product --</option>
                         <option value="Product A">Product A</option>
                         <option value="Product B">Product B</option>
@@ -73,37 +68,130 @@
                     </select>
                 </div>
 
-                <!-- Production Code -->
-                <div class="mb-4">
-                    <label class="form-label">
-                        Production Code <span class="required">*</span>
-                    </label>
-                    <div class="row g-3">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="line" class="form-label">Line/Machine <span class="required">*</span></label>
+                        <input type="text" id="line" name="line" class="form-control" 
+                               placeholder="e.g., Line 1, Machine A" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="group" class="form-label">Group <span class="required">*</span></label>
+                        <input type="text" id="group" name="group" class="form-control" 
+                               placeholder="Group name" required>
+                    </div>
+                </div>
+
+                <!-- STANDARD TABLE -->
+                <div class="standard-box mb-4">
+                    <h5 class="mb-3"><i class="fas fa-star"></i> STANDARD</h5>
+                    <div class="row">
                         <div class="col-md-6">
-                            <span class="code-label">P Code (Line 1)</span>
-                            <input type="text" id="pCode" name="pCode" class="form-control" placeholder="Enter P Code" required>
+                            <h6 class="text-primary">Display Box</h6>
+                            <div class="mb-2">
+                                <label class="form-label-sm">Production Code:</label>
+                                <input type="text" id="stdBoxPCode" class="form-control form-control-sm" readonly>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label-sm">Content:</label>
+                                <input type="text" id="stdBoxContent" class="form-control form-control-sm" readonly>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label-sm">Color:</label>
+                                <input type="text" id="stdBoxColor" class="form-control form-control-sm" readonly>
+                            </div>
                         </div>
                         <div class="col-md-6">
-                            <span class="code-label">E Code (Line 2)</span>
-                            <input type="text" id="eCode" name="eCode" class="form-control" placeholder="Enter E Code" required>
+                            <h6 class="text-success">Bag or Sachet</h6>
+                            <div class="mb-2">
+                                <label class="form-label-sm">Seal:</label>
+                                <input type="text" id="stdSachetSeal" class="form-control form-control-sm" value="0%" readonly>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label-sm">Production Code:</label>
+                                <input type="text" id="stdSachetPCode" class="form-control form-control-sm" readonly>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Production Date -->
-                <div class="mb-4">
-                    <label for="prodDate" class="form-label">
-                        Production Date <span class="required">*</span>
-                    </label>
-                    <input type="date" id="prodDate" name="prodDate" class="form-control" required>
+                <!-- SECTION 2: CHECKING TABLE -->
+                <h2 class="section-title">Section 2: Pallet Checking</h2>
+                
+                <div class="table-responsive">
+                    <table class="table table-bordered checking-table" id="checkingTable">
+                        <thead>
+                            <tr>
+                                <th rowspan="2">No Pallet</th>
+                                <th rowspan="2">Time</th>
+                                <th rowspan="2">Total Check</th>
+                                <th colspan="3" class="table-primary">BOX / DISPLAY</th>
+                                <th colspan="2" class="table-success">SAK / SACHET</th>
+                                <th rowspan="2">%OK</th>
+                                <th rowspan="2">Notes</th>
+                                <th rowspan="2">Action</th>
+                            </tr>
+                            <tr>
+                                <th class="table-primary">P. Code</th>
+                                <th class="table-primary">Content</th>
+                                <th class="table-primary">Color</th>
+                                <th class="table-success">Seal</th>
+                                <th class="table-success">P. Code</th>
+                            </tr>
+                        </thead>
+                        <tbody id="checkingTableBody">
+                            <!-- Rows will be added dynamically -->
+                        </tbody>
+                    </table>
                 </div>
 
-                <!-- Expiration Date -->
-                <div class="mb-4">
-                    <label for="expDate" class="form-label">
-                        Expiration Date <span class="required">*</span>
-                    </label>
-                    <input type="date" id="expDate" name="expDate" class="form-control" required>
+                <div class="text-center mb-4">
+                    <button type="button" class="btn btn-success" onclick="addPalletRow()">
+                        <i class="fas fa-plus-circle"></i> Add Pallet Check
+                    </button>
+                </div>
+
+                <!-- SECTION 3: APPROVAL -->
+                <h2 class="section-title">Section 3: Approval</h2>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="qcPersonnel" class="form-label">QC Personnel <span class="required">*</span></label>
+                        <select id="qcPersonnel" name="qcPersonnel" class="form-select" required>
+                            <option value="">-- Select QC Personnel --</option>
+                            <option value="John Doe">John Doe</option>
+                            <option value="Jane Smith">Jane Smith</option>
+                            <option value="Michael Chen">Michael Chen</option>
+                            <option value="Sarah Johnson">Sarah Johnson</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="shiftSupervisor" class="form-label">Shift Supervisor <span class="required">*</span></label>
+                        <select id="shiftSupervisor" name="shiftSupervisor" class="form-select" required>
+                            <option value="">-- Select Shift Supervisor --</option>
+                            <option value="Robert Brown">Robert Brown</option>
+                            <option value="Lisa Anderson">Lisa Anderson</option>
+                            <option value="David Wilson">David Wilson</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="supervisor" class="form-label">Supervisor</label>
+                        <select id="supervisor" name="supervisor" class="form-select">
+                            <option value="">-- Select Supervisor --</option>
+                            <option value="Manager A">Manager A</option>
+                            <option value="Manager B">Manager B</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="sectionManager" class="form-label">Section Manager</label>
+                        <select id="sectionManager" name="sectionManager" class="form-select">
+                            <option value="">-- Select Section Manager --</option>
+                            <option value="Director X">Director X</option>
+                            <option value="Director Y">Director Y</option>
+                        </select>
+                    </div>
                 </div>
             </form>
         </div>
@@ -112,7 +200,7 @@
             <div class="row g-3">
                 <div class="col-md-6">
                     <button type="button" class="btn btn-custom-secondary w-100" onclick="resetForm()">
-                        <i class="fas fa-redo me-2"></i>Reset
+                        <i class="fas fa-redo me-2"></i>Reset Form
                     </button>
                 </div>
                 <div class="col-md-6">

@@ -15,7 +15,7 @@ body {
 
 /* Form Container */
 .form-container {
-    max-width: 900px;
+    max-width: 1200px;
     margin: 0 auto;
     background: white;
     border-radius: 15px;
@@ -32,13 +32,13 @@ body {
 }
 
 .form-header h1 {
-    font-size: 36px;
+    font-size: 32px;
     margin-bottom: 10px;
     font-weight: 700;
 }
 
 .form-header p {
-    font-size: 18px;
+    font-size: 17px;
     opacity: 0.95;
 }
 
@@ -48,32 +48,44 @@ body {
 }
 
 .section-title {
-    font-size: 24px;
+    font-size: 22px;
     color: #333;
     margin-bottom: 25px;
+    margin-top: 30px;
     padding-bottom: 12px;
     border-bottom: 3px solid #667eea;
     font-weight: 600;
+}
+
+.section-title:first-child {
+    margin-top: 0;
 }
 
 /* Form Elements */
 .form-label {
     font-weight: 600;
     color: #555;
-    margin-bottom: 10px;
-    font-size: 17px;
+    margin-bottom: 8px;
+    font-size: 16px;
+}
+
+.form-label-sm {
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 4px;
+    font-size: 14px;
 }
 
 .required {
     color: #dc3545;
-    font-size: 18px;
+    font-size: 16px;
 }
 
 .form-control, .form-select {
     border: 2px solid #e0e0e0;
-    border-radius: 10px;
-    padding: 16px 18px;
-    font-size: 17px;
+    border-radius: 8px;
+    padding: 12px 15px;
+    font-size: 15px;
     transition: all 0.3s ease;
 }
 
@@ -82,12 +94,81 @@ body {
     box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
 }
 
-.code-label {
+.form-control-sm {
+    padding: 8px 12px;
+    font-size: 14px;
+}
+
+/* Standard Box */
+.standard-box {
+    background: #f8f9fa;
+    border: 2px solid #dee2e6;
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.standard-box h5 {
+    color: #495057;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.standard-box h6 {
+    font-weight: 600;
+    margin-bottom: 12px;
     font-size: 15px;
-    color: #777;
-    margin-bottom: 6px;
-    display: block;
-    font-weight: 500;
+}
+
+/* Checking Table */
+.checking-table {
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.checking-table thead th {
+    background: #495057;
+    color: white;
+    font-weight: 600;
+    text-align: center;
+    vertical-align: middle;
+    padding: 12px 8px;
+    font-size: 13px;
+}
+
+.checking-table tbody td {
+    vertical-align: middle;
+    padding: 10px 8px;
+}
+
+.checking-table input,
+.checking-table select {
+    font-size: 13px;
+    padding: 6px 8px;
+}
+
+.checking-table .form-control,
+.checking-table .form-select {
+    min-width: 80px;
+}
+
+.table-primary {
+    background-color: #cfe2ff !important;
+}
+
+.table-success {
+    background-color: #d1e7dd !important;
+}
+
+.pallet-number {
+    font-weight: 600;
+    color: #495057;
+    text-align: center;
+}
+
+.percent-ok {
+    font-weight: 700;
+    font-size: 15px;
+    text-align: center;
 }
 
 /* Buttons */
@@ -95,8 +176,8 @@ body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
-    padding: 16px 28px;
-    font-size: 18px;
+    padding: 14px 24px;
+    font-size: 17px;
     font-weight: 600;
     border-radius: 10px;
     transition: all 0.3s ease;
@@ -113,8 +194,8 @@ body {
     background: #f0f0f0;
     color: #555;
     border: none;
-    padding: 16px 28px;
-    font-size: 18px;
+    padding: 14px 24px;
+    font-size: 17px;
     font-weight: 600;
     border-radius: 10px;
     transition: all 0.3s ease;
@@ -123,6 +204,11 @@ body {
 
 .btn-custom-secondary:hover {
     background: #e0e0e0;
+}
+
+.btn-danger {
+    padding: 6px 12px;
+    font-size: 13px;
 }
 
 .button-group {
@@ -162,17 +248,38 @@ body {
 }
 
 /* Mobile Responsiveness */
+@media (max-width: 992px) {
+    .checking-table {
+        font-size: 12px;
+    }
+    
+    .checking-table thead th {
+        font-size: 11px;
+        padding: 8px 4px;
+    }
+    
+    .checking-table tbody td {
+        padding: 8px 4px;
+    }
+    
+    .checking-table .form-control,
+    .checking-table .form-select {
+        min-width: 70px;
+        font-size: 12px;
+    }
+}
+
 @media (max-width: 768px) {
     body {
         padding: 15px;
     }
 
     .form-header h1 {
-        font-size: 28px;
+        font-size: 26px;
     }
 
     .form-header p {
-        font-size: 16px;
+        font-size: 15px;
     }
 
     .form-body {
@@ -180,16 +287,16 @@ body {
     }
 
     .section-title {
-        font-size: 20px;
+        font-size: 19px;
     }
 
     .form-label {
-        font-size: 16px;
+        font-size: 15px;
     }
 
     .form-control, .form-select {
-        font-size: 16px;
-        padding: 14px 16px;
+        font-size: 15px;
+        padding: 12px 14px;
     }
 
     .button-group {
@@ -198,8 +305,13 @@ body {
 
     .btn-custom-primary,
     .btn-custom-secondary {
-        font-size: 17px;
-        padding: 14px 24px;
+        font-size: 16px;
+        padding: 13px 20px;
+    }
+    
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
 }
 
@@ -217,11 +329,11 @@ body {
     }
 
     .form-header h1 {
-        font-size: 24px;
+        font-size: 22px;
     }
 
     .form-header p {
-        font-size: 15px;
+        font-size: 14px;
     }
 
     .form-body {
@@ -230,5 +342,9 @@ body {
 
     .button-group {
         padding: 0 15px 20px 15px;
+    }
+    
+    .standard-box {
+        padding: 15px;
     }
 }
