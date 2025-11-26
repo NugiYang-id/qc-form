@@ -82,12 +82,16 @@
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="line" class="form-label">Line/Machine <span class="required">*</span></label>
-                        <input type="text" id="line" name="line" class="form-control" 
-                               placeholder="e.g., Line 1, Machine A" required>
-                        <small class="form-text text-muted">
-                            <i class="fas fa-list"></i> Available lines will be suggested based on product
-                        </small>
+                        <label for="line" class="form-label">
+                            Line/Machine <span class="required">*</span>
+                            <button type="button" class="btn btn-sm btn-outline-info ms-2" onclick="refreshLines()" title="Refresh lines">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </label>
+                        <select id="line" name="line" class="form-select" required>
+                            <option value="">-- Select Line --</option>
+                            <!-- Options populated from lines matrix -->
+                        </select>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label for="group" class="form-label">Group <span class="required">*</span></label>
@@ -173,19 +177,14 @@
                         <label for="qcPersonnel" class="form-label">QC Personnel <span class="required">*</span></label>
                         <select id="qcPersonnel" name="qcPersonnel" class="form-select" required>
                             <option value="">-- Select QC Personnel --</option>
-                            <option value="John Doe">John Doe</option>
-                            <option value="Jane Smith">Jane Smith</option>
-                            <option value="Michael Chen">Michael Chen</option>
-                            <option value="Sarah Johnson">Sarah Johnson</option>
+                            <!-- Options populated from personnel matrix -->
                         </select>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label for="shiftSupervisor" class="form-label">Shift Supervisor <span class="required">*</span></label>
                         <select id="shiftSupervisor" name="shiftSupervisor" class="form-select" required>
                             <option value="">-- Select Shift Supervisor --</option>
-                            <option value="Robert Brown">Robert Brown</option>
-                            <option value="Lisa Anderson">Lisa Anderson</option>
-                            <option value="David Wilson">David Wilson</option>
+                            <!-- Options populated from personnel matrix -->
                         </select>
                     </div>
                 </div>
@@ -195,16 +194,14 @@
                         <label for="supervisor" class="form-label">Supervisor</label>
                         <select id="supervisor" name="supervisor" class="form-select">
                             <option value="">-- Select Supervisor --</option>
-                            <option value="Manager A">Manager A</option>
-                            <option value="Manager B">Manager B</option>
+                            <!-- Options populated from personnel matrix -->
                         </select>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label for="sectionManager" class="form-label">Section Manager</label>
                         <select id="sectionManager" name="sectionManager" class="form-select">
                             <option value="">-- Select Section Manager --</option>
-                            <option value="Director X">Director X</option>
-                            <option value="Director Y">Director Y</option>
+                            <!-- Options populated from personnel matrix -->
                         </select>
                     </div>
                 </div>

@@ -9,6 +9,8 @@ const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYwrRL65hFpU
 // ============================================
 
 let STANDARD_MATRIX = {};
+let PERSONNEL_MATRIX = {};
+let LINES_MATRIX = [];
 let palletCount = 0;
 let selectedProduct = null;
 
@@ -18,10 +20,20 @@ let selectedProduct = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     // Show loading indicator
-    showLoading('Loading product matrix...');
+    showLoading('Loading data...');
     
-    // Load product matrix from Google Sheets
-    loadProductMatrix();
+    // Load all matrices from Google Sheets
+    Promise.all([
+        loadProductMatrix(),
+        loadPersonnelMatrix(),
+        loadLinesMatrix()
+    ]).then(() => {
+        hideLoading();
+        console.log('✓ All matrices loaded successfully');
+    }).catch(error => {
+        hideLoading();
+        console.error('Error loading matrices:', error);
+    });
     
     // Set today's date as default
     document.getElementById('prodDate').valueAsDate = new Date();
@@ -43,42 +55,77 @@ document.addEventListener('DOMContentLoaded', function() {
 // ============================================
 
 function loadProductMatrix() {
-    fetch(GOOGLE_SCRIPT_URL + '?action=getMatrix')
+    return fetch(GOOGLE_SCRIPT_URL + '?action=getMatrix')
         .then(response => response.json())
         .then(data => {
             if (data.success) {
                 STANDARD_MATRIX = data.matrix;
-                
-                // Populate product dropdown
                 populateProductDropdown();
-                
-                // Hide loading
-                hideLoading();
-                
-                // Show success message
-                console.log(`✓ Loaded ${data.totalProducts} products from matrix`);
-                
+                console.log(`✓ Loaded ${data.totalProducts} products`);
             } else {
                 throw new Error(data.message || 'Failed to load product matrix');
             }
         })
         .catch(error => {
             console.error('Error loading product matrix:', error);
-            hideLoading();
-            
-            // Show error and use fallback data
-            Swal.fire({
-                icon: 'warning',
-                title: 'Could not load product matrix',
-                html: 'Using default products. Please check your internet connection or contact IT support.<br><br>' +
-                      '<small>Error: ' + error.message + '</small>',
-                confirmButtonColor: '#667eea'
-            }).then(() => {
-                // Use fallback sample data
-                useFallbackMatrix();
-                populateProductDropdown();
-            });
+            useFallbackMatrix();
+            populateProductDropdown();
+            throw error;
         });
+}
+
+function loadPersonnelMatrix() {
+    return fetch(GOOGLE_SCRIPT_URL + '?action=getPersonnel')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                PERSONNEL_MATRIX = data.personnel;
+                populatePersonnelDropdowns();
+                console.log(`✓ Loaded ${data.total} personnel`);
+            } else {
+                throw new Error(data.message || 'Failed to load personnel matrix');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading personnel matrix:', error);
+            useFallbackPersonnel();
+            populatePersonnelDropdowns();
+        });
+}
+
+function loadLinesMatrix() {
+    return fetch(GOOGLE_SCRIPT_URL + '?action=getLines')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                LINES_MATRIX = data.lines;
+                populateLinesDropdown();
+                console.log(`✓ Loaded ${data.total} lines`);
+            } else {
+                throw new Error(data.message || 'Failed to load lines matrix');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading lines matrix:', error);
+            useFallbackLines();
+            populateLinesDropdown();
+        });
+}
+
+function useFallbackPersonnel() {
+    PERSONNEL_MATRIX = {
+        qcPersonnel: ['John Doe', 'Jane Smith'],
+        shiftSupervisor: ['Robert Brown'],
+        supervisor: ['Manager A'],
+        sectionManager: ['Director X']
+    };
+}
+
+function useFallbackLines() {
+    LINES_MATRIX = [
+        { name: 'Line 1', description: 'Primary line', capacity: '5000' },
+        { name: 'Line 2', description: 'Secondary line', capacity: '4500' }
+    ];
 }
 
 function useFallbackMatrix() {
@@ -139,9 +186,197 @@ function refreshProductMatrix() {
     });
 }
 
+function populatePersonnelDropdowns() {
+    // QC Personnel
+    const qcSelect = document.getElementById('qcPersonnel');
+    qcSelect.innerHTML = '<option value="">-- Select QC Personnel --</option>';
+    PERSONNEL_MATRIX.qcPersonnel.forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        qcSelect.appendChild(option);
+    });
+    
+    // Shift Supervisor
+    const shiftSupSelect = document.getElementById('shiftSupervisor');
+    shiftSupSelect.innerHTML = '<option value="">-- Select Shift Supervisor --</option>';
+    PERSONNEL_MATRIX.shiftSupervisor.forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        shiftSupSelect.appendChild(option);
+    });
+    
+    // Supervisor
+    const supSelect = document.getElementById('supervisor');
+    supSelect.innerHTML = '<option value="">-- Select Supervisor --</option>';
+    PERSONNEL_MATRIX.supervisor.forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        supSelect.appendChild(option);
+    });
+    
+    // Section Manager
+    const managerSelect = document.getElementById('sectionManager');
+    managerSelect.innerHTML = '<option value="">-- Select Section Manager --</option>';
+    PERSONNEL_MATRIX.sectionManager.forEach(name => {
+        const option = document.createElement('option');
+        option.value = name;
+        option.textContent = name;
+        managerSelect.appendChild(option);
+    });
+}
+
+function populateLinesDropdown() {
+    const lineSelect = document.getElementById('line');
+    lineSelect.innerHTML = '<option value="">-- Select Line --</option>';
+    
+    LINES_MATRIX.forEach(line => {
+        const option = document.createElement('option');
+        option.value = line.name;
+        option.textContent = line.name + (line.description ? ' - ' + line.description : '');
+        lineSelect.appendChild(option);
+    });
+}
+
+function refreshLines() {
+    showLoading('Refreshing lines...');
+    loadLinesMatrix().then(() => {
+        hideLoading();
+        Swal.fire({
+            icon: 'success',
+            title: 'Lines Refreshed!',
+            timer: 1500,
+            showConfirmButton: false
+        });
+    });
+}
+
 // ============================================
-// POPULATE DROPDOWNS FROM STANDARD MATRIX
+// RECALL PREVIOUS FORM FEATURE
 // ============================================
+
+function showRecallDialog() {
+    showLoading('Loading recent forms...');
+    
+    fetch(GOOGLE_SCRIPT_URL + '?action=getRecentForms&limit=50')
+        .then(response => response.json())
+        .then(data => {
+            hideLoading();
+            
+            if (!data.success || data.forms.length === 0) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'No Forms Found',
+                    text: 'There are no previous forms to recall.',
+                    confirmButtonColor: '#667eea'
+                });
+                return;
+            }
+            
+            displayFormsDataTable(data.forms);
+        })
+        .catch(error => {
+            hideLoading();
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Failed to load previous forms: ' + error.message,
+                confirmButtonColor: '#667eea'
+            });
+        });
+}
+
+function displayFormsDataTable(forms) {
+    // Create HTML table
+    let tableHTML = `
+        <div style="max-height: 500px; overflow-y: auto;">
+            <table id="recallTable" class="table table-striped table-hover table-sm" style="font-size: 13px;">
+                <thead style="position: sticky; top: 0; background: white; z-index: 10;">
+                    <tr>
+                        <th>Form #</th>
+                        <th>Date</th>
+                        <th>Product</th>
+                        <th>Line</th>
+                        <th>QC</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+    
+    forms.forEach(form => {
+        const timestamp = new Date(form.timestamp).toLocaleDateString();
+        tableHTML += `
+            <tr>
+                <td><strong>${form.formNumber}</strong></td>
+                <td>${form.checkDate}</td>
+                <td>${form.productItem}</td>
+                <td>${form.line}</td>
+                <td>${form.qcPersonnel}</td>
+                <td>
+                    <button class="btn btn-sm btn-primary" onclick='recallForm(${JSON.stringify(form)})'>
+                        <i class="fas fa-download"></i> Load
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    tableHTML += `
+                </tbody>
+            </table>
+        </div>
+    `;
+    
+    Swal.fire({
+        title: 'Recall Previous Form',
+        html: tableHTML,
+        width: '900px',
+        showConfirmButton: false,
+        showCloseButton: true,
+        customClass: {
+            popup: 'recall-popup'
+        }
+    });
+}
+
+function recallForm(form) {
+    Swal.close();
+    
+    // Populate Section 1 with recalled data
+    document.getElementById('checkDate').value = new Date().toISOString().split('T')[0]; // Today's date
+    document.getElementById('prodDate').value = form.prodDate || '';
+    document.getElementById('expDate').value = form.expDate || '';
+    document.getElementById('shift').value = form.shift || '';
+    document.getElementById('productItem').value = form.productItem || '';
+    document.getElementById('line').value = form.line || '';
+    document.getElementById('group').value = form.group || '';
+    document.getElementById('qcPersonnel').value = form.qcPersonnel || '';
+    document.getElementById('shiftSupervisor').value = form.shiftSupervisor || '';
+    document.getElementById('supervisor').value = form.supervisor || '';
+    document.getElementById('sectionManager').value = form.sectionManager || '';
+    
+    // Trigger product selection to populate standards
+    if (form.productItem) {
+        populateStandards();
+    }
+    
+    // Clear existing pallet checks (user will add new ones)
+    document.getElementById('checkingTableBody').innerHTML = '';
+    palletCount = 0;
+    addPalletRow();
+    
+    // Show success message
+    Swal.fire({
+        icon: 'success',
+        title: 'Form Recalled!',
+        html: `Form <strong>${form.formNumber}</strong> data has been loaded.<br><br>
+               <small>You can now add new pallet checks for this session.</small>`,
+        confirmButtonColor: '#667eea'
+    });
+}
 
 function populateProductDropdown() {
     const productSelect = document.getElementById('productItem');
