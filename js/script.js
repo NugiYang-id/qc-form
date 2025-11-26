@@ -289,35 +289,80 @@ function showRecallDialog() {
 }
 
 function displayFormsDataTable(forms) {
-    // Create HTML table
+    // Build HTML for advanced DataTable with filters
     let tableHTML = `
-        <div style="max-height: 500px; overflow-y: auto;">
-            <table id="recallTable" class="table table-striped table-hover table-sm" style="font-size: 13px;">
-                <thead style="position: sticky; top: 0; background: white; z-index: 10;">
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <label class="form-label-sm">Filter by Product:</label>
+                <select id="filterProduct" class="form-select form-select-sm">
+                    <option value="">All Products</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label-sm">Filter by Line:</label>
+                <select id="filterLine" class="form-select form-select-sm">
+                    <option value="">All Lines</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label-sm">Filter by QC:</label>
+                <select id="filterQC" class="form-select form-select-sm">
+                    <option value="">All QC</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label-sm">Filter by Shift:</label>
+                <select id="filterShift" class="form-select form-select-sm">
+                    <option value="">All Shifts</option>
+                    <option value="Morning">Morning</option>
+                    <option value="Afternoon">Afternoon</option>
+                    <option value="Night">Night</option>
+                </select>
+            </div>
+        </div>
+        <div style="max-height: 600px; overflow: auto;">
+            <table id="recallDataTable" class="table table-striped table-hover table-sm" style="width:100%; font-size: 12px;">
+                <thead>
                     <tr>
                         <th>Form #</th>
                         <th>Date</th>
                         <th>Product</th>
                         <th>Line</th>
+                        <th>Shift</th>
                         <th>QC</th>
+                        <th>Pallets</th>
                         <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
     `;
     
+    // Collect unique values for filters
+    const products = new Set();
+    const lines = new Set();
+    const qcPersonnel = new Set();
+    
     forms.forEach(form => {
-        const timestamp = new Date(form.timestamp).toLocaleDateString();
+        const timestamp = new Date(form.timestamp).toLocaleString();
+        products.add(form.productItem);
+        lines.add(form.line);
+        qcPersonnel.add(form.qcPersonnel);
+        
         tableHTML += `
             <tr>
                 <td><strong>${form.formNumber}</strong></td>
                 <td>${form.checkDate}</td>
                 <td>${form.productItem}</td>
                 <td>${form.line}</td>
+                <td>${form.shift}</td>
                 <td>${form.qcPersonnel}</td>
+                <td><span class="badge bg-primary">${form.totalPallets}</span></td>
                 <td>
-                    <button class="btn btn-sm btn-primary" onclick='recallForm(${JSON.stringify(form)})'>
-                        <i class="fas fa-download"></i> Load
+                    <button class="btn btn-sm btn-info me-1" onclick='viewFormDetails(${JSON.stringify(form).replace(/'/g, "&apos;")})' title="View Details">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-success" onclick='recallForm(${JSON.stringify(form).replace(/'/g, "&apos;")})' title="Load Form">
+                        <i class="fas fa-download"></i>
                     </button>
                 </td>
             </tr>
@@ -331,13 +376,183 @@ function displayFormsDataTable(forms) {
     `;
     
     Swal.fire({
-        title: 'Recall Previous Form',
+        title: '<i class="fas fa-history"></i> Recall Previous Form',
         html: tableHTML,
-        width: '900px',
+        width: '95%',
         showConfirmButton: false,
         showCloseButton: true,
+        didOpen: () => {
+            // Populate filter dropdowns
+            const productSelect = document.getElementById('filterProduct');
+            products.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p;
+                opt.textContent = p;
+                productSelect.appendChild(opt);
+            });
+            
+            const lineSelect = document.getElementById('filterLine');
+            lines.forEach(l => {
+                const opt = document.createElement('option');
+                opt.value = l;
+                opt.textContent = l;
+                lineSelect.appendChild(opt);
+            });
+            
+            const qcSelect = document.getElementById('filterQC');
+            qcPersonnel.forEach(q => {
+                const opt = document.createElement('option');
+                opt.value = q;
+                opt.textContent = q;
+                qcSelect.appendChild(opt);
+            });
+            
+            // Initialize DataTable
+            const table = $('#recallDataTable').DataTable({
+                pageLength: 10,
+                order: [[0, 'desc']], // Sort by Form # descending (newest first)
+                language: {
+                    search: "Search:",
+                    lengthMenu: "Show _MENU_ forms",
+                    info: "Showing _START_ to _END_ of _TOTAL_ forms",
+                    paginate: {
+                        first: "First",
+                        last: "Last",
+                        next: "Next",
+                        previous: "Previous"
+                    }
+                }
+            });
+            
+            // Custom filter functions
+            $.fn.dataTable.ext.search.push(
+                function(settings, data, dataIndex) {
+                    const filterProduct = $('#filterProduct').val();
+                    const filterLine = $('#filterLine').val();
+                    const filterQC = $('#filterQC').val();
+                    const filterShift = $('#filterShift').val();
+                    
+                    const product = data[2]; // Product column
+                    const line = data[3];    // Line column
+                    const shift = data[4];   // Shift column
+                    const qc = data[5];      // QC column
+                    
+                    if (filterProduct && product !== filterProduct) return false;
+                    if (filterLine && line !== filterLine) return false;
+                    if (filterQC && qc !== filterQC) return false;
+                    if (filterShift && !shift.includes(filterShift)) return false;
+                    
+                    return true;
+                }
+            );
+            
+            // Bind filter events
+            $('#filterProduct, #filterLine, #filterQC, #filterShift').on('change', function() {
+                table.draw();
+            });
+        },
+        willClose: () => {
+            // Remove custom filter when dialog closes
+            $.fn.dataTable.ext.search.pop();
+        }
+    });
+}
+
+function viewFormDetails(form) {
+    let detailsHTML = `
+        <div style="text-align: left;">
+            <h5 class="border-bottom pb-2 mb-3">
+                <i class="fas fa-file-alt"></i> Form Details: ${form.formNumber}
+            </h5>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <strong>Check Date:</strong> ${form.checkDate}<br>
+                    <strong>Product:</strong> ${form.productItem}<br>
+                    <strong>Item Code:</strong> ${form.itemCode}<br>
+                    <strong>Line:</strong> ${form.line}<br>
+                    <strong>Group:</strong> ${form.group}<br>
+                    <strong>Shift:</strong> ${form.shift}
+                </div>
+                <div class="col-md-6">
+                    <strong>Production Date:</strong> ${form.prodDate}<br>
+                    <strong>Expiration Date:</strong> ${form.expDate}<br>
+                    <strong>Shelf Life:</strong> ${form.shelfLifeDays} days<br>
+                    <strong>QC Personnel:</strong> ${form.qcPersonnel}<br>
+                    <strong>Shift Supervisor:</strong> ${form.shiftSupervisor}<br>
+                    <strong>Total Pallets Checked:</strong> ${form.totalPallets}
+                </div>
+            </div>
+            
+            <h6 class="border-bottom pb-2 mb-3">
+                <i class="fas fa-pallet"></i> Pallet Checks History
+            </h6>
+            
+            <div style="max-height: 400px; overflow-y: auto;">
+                <table class="table table-bordered table-sm" style="font-size: 11px;">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Pallet</th>
+                            <th>Time</th>
+                            <th>Total Check</th>
+                            <th>Box P.Code</th>
+                            <th>Box Content</th>
+                            <th>Box Color</th>
+                            <th>Sachet Seal</th>
+                            <th>Sachet P.Code</th>
+                            <th>%OK</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+    `;
+    
+    if (form.palletChecks && form.palletChecks.length > 0) {
+        form.palletChecks.forEach(pallet => {
+            const okClass = pallet.percentOK && parseFloat(pallet.percentOK) >= 80 ? 'text-success' : 'text-danger';
+            detailsHTML += `
+                <tr>
+                    <td><strong>${pallet.noPallet}</strong></td>
+                    <td>${pallet.time}</td>
+                    <td>${pallet.totalCheck}</td>
+                    <td><span class="badge bg-${pallet.boxPCode === 'OK' ? 'success' : 'danger'}">${pallet.boxPCode}</span></td>
+                    <td><span class="badge bg-${pallet.boxContent === 'OK' ? 'success' : 'danger'}">${pallet.boxContent}</span></td>
+                    <td><span class="badge bg-${pallet.boxColor === 'OK' ? 'success' : 'danger'}">${pallet.boxColor}</span></td>
+                    <td><span class="badge bg-${pallet.sachetSeal === 'OK' ? 'success' : 'danger'}">${pallet.sachetSeal}</span></td>
+                    <td><span class="badge bg-${pallet.sachetPCode === 'OK' ? 'success' : 'danger'}">${pallet.sachetPCode}</span></td>
+                    <td class="${okClass}"><strong>${pallet.percentOK}</strong></td>
+                    <td>${pallet.notes || '-'}</td>
+                </tr>
+            `;
+        });
+    } else {
+        detailsHTML += `
+            <tr>
+                <td colspan="10" class="text-center text-muted">No pallet checks recorded</td>
+            </tr>
+        `;
+    }
+    
+    detailsHTML += `
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="mt-3 text-center">
+                <button class="btn btn-success" onclick='Swal.close(); recallForm(${JSON.stringify(form).replace(/'/g, "&apos;")})'>
+                    <i class="fas fa-download"></i> Load This Form
+                </button>
+            </div>
+        </div>
+    `;
+    
+    Swal.fire({
+        html: detailsHTML,
+        width: '95%',
+        showCloseButton: true,
+        showConfirmButton: false,
         customClass: {
-            popup: 'recall-popup'
+            popup: 'form-details-popup'
         }
     });
 }
