@@ -31,62 +31,53 @@
             <h2 class="section-title">Section 1: Identity & Standard</h2>
             
             <form id="qcForm">
-                <!-- Form Number -->
+                <!-- Form Number - Hidden, will be auto-generated -->
+                <input type="hidden" id="formNumber" name="formNumber">
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="checkDate" class="form-label">Date <span class="required">*</span></label>
+                        <input type="date" id="checkDate" name="checkDate" class="form-control" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="prodDate" class="form-label">Production Date <span class="required">*</span></label>
+                        <input type="date" id="prodDate" name="prodDate" class="form-control" required>
+                    </div>
+                </div>
+
                 <div class="mb-3">
-                    <label for="formNumber" class="form-label">
-                        Form Number <span class="required">*</span>
+                    <label for="productItem" class="form-label">
+                        Item/Product <span class="required">*</span>
+                        <button type="button" class="btn btn-sm btn-outline-primary ms-2" onclick="refreshProductMatrix()" title="Refresh product list">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
                     </label>
-                    <input type="text" id="formNumber" name="formNumber" class="form-control" 
-                           placeholder="e.g., 001/PG/XI/2025" required>
+                    <select id="productItem" name="productItem" class="form-select" required onchange="populateStandards()">
+                        <option value="">-- Select Product --</option>
+                        <!-- Options populated from standard matrix -->
+                    </select>
+                    <small class="form-text text-muted">
+                        <i class="fas fa-info-circle"></i> Product information and shelf life will be shown after selection
+                    </small>
                 </div>
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        
-                        
+                        <label for="expDate" class="form-label">Expiration Date <span class="required">*</span></label>
+                        <input type="date" id="expDate" name="expDate" class="form-control" required>
+                        <small class="form-text text-muted">
+                            <i class="fas fa-calendar-check"></i> Will be validated against shelf life
+                        </small>
                     </div>
                     <div class="col-md-6 mb-3">
-                        
-                        
-                    </div>
-                </div>
-                <div class="form-group">
-                    <div class="row">
-                        <div class="col">
-                            <label for="checkDate" class="form-label">Date <span class="required">*</span></label>
-                        </div>
-                        <div class="col">
-                            <label for="shift" class="form-label">Shift <span class="required">*</span></label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <div class="row">
-                        <div class="col">
-                            <input type="date" id="checkDate" name="checkDate" class="form-control" required>
-                        </div>
-                        <div class="col">
-                            <select id="shift" name="shift" class="form-select" required>
+                        <label for="shift" class="form-label">Shift <span class="required">*</span></label>
+                        <select id="shift" name="shift" class="form-select" required>
                             <option value="">-- Select Shift --</option>
                             <option value="Morning (06:00 - 14:00)">Morning (06:00 - 14:00)</option>
                             <option value="Afternoon (14:00 - 22:00)">Afternoon (14:00 - 22:00)</option>
                             <option value="Night (22:00 - 06:00)">Night (22:00 - 06:00)</option>
                         </select>
-                        </div>
                     </div>
-                </div>
-
-                <div class="mb-3">
-                    <label for="productItem" class="form-label">Item/Product <span class="required">*</span></label>
-                    <select id="productItem" name="productItem" class="form-select" required onchange="populateStandards()">
-                        <option value="">-- Select Product --</option>
-                        <option value="Product A">Product A</option>
-                        <option value="Product B">Product B</option>
-                        <option value="Product C">Product C</option>
-                        <option value="Product D">Product D</option>
-                        <option value="Product E">Product E</option>
-                    </select>
                 </div>
 
                 <div class="row">
@@ -94,6 +85,9 @@
                         <label for="line" class="form-label">Line/Machine <span class="required">*</span></label>
                         <input type="text" id="line" name="line" class="form-control" 
                                placeholder="e.g., Line 1, Machine A" required>
+                        <small class="form-text text-muted">
+                            <i class="fas fa-list"></i> Available lines will be suggested based on product
+                        </small>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label for="group" class="form-label">Group <span class="required">*</span></label>
@@ -148,7 +142,7 @@
                                 <th colspan="3" class="table-primary">BOX / DISPLAY</th>
                                 <th colspan="2" class="table-success">SAK / SACHET</th>
                                 <th rowspan="2">%OK</th>
-                                <th rowspan="2">Notes</th>
+                                <th rowspan="2" style="min-width: 150px;">Notes</th>
                                 <th rowspan="2">Action</th>
                             </tr>
                             <tr>

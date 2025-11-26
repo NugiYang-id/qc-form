@@ -4,39 +4,27 @@
 
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYwrRL65hFpUeFb6nmg_QtKbY0zlknYeU_HQk4vC7bEFnQH-N9W679MDhYu1uUwul1Rw/exec';
 
-// Product Standards Database
-const PRODUCT_STANDARDS = {
-    'Product A': {
-        box: { pCode: 'PA-BOX-001', content: '24 pcs', color: 'Blue' },
-        sachet: { seal: '0%', pCode: 'PA-SCH-001' }
-    },
-    'Product B': {
-        box: { pCode: 'PB-BOX-002', content: '12 pcs', color: 'Red' },
-        sachet: { seal: '0%', pCode: 'PB-SCH-002' }
-    },
-    'Product C': {
-        box: { pCode: 'PC-BOX-003', content: '36 pcs', color: 'Green' },
-        sachet: { seal: '0%', pCode: 'PC-SCH-003' }
-    },
-    'Product D': {
-        box: { pCode: 'PD-BOX-004', content: '48 pcs', color: 'Yellow' },
-        sachet: { seal: '0%', pCode: 'PD-SCH-004' }
-    },
-    'Product E': {
-        box: { pCode: 'PE-BOX-005', content: '18 pcs', color: 'Orange' },
-        sachet: { seal: '0%', pCode: 'PE-SCH-005' }
-    }
-};
+// ============================================
+// STANDARD MATRIX (Loaded from Google Sheets)
+// ============================================
 
+let STANDARD_MATRIX = {};
 let palletCount = 0;
+let selectedProduct = null;
 
 // ============================================
 // INITIALIZATION
 // ============================================
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Show loading indicator
+    showLoading('Loading product matrix...');
+    
+    // Load product matrix from Google Sheets
+    loadProductMatrix();
+    
     // Set today's date as default
-    document.getElementById('checkDate').valueAsDate = new Date();
+    document.getElementById('prodDate').valueAsDate = new Date();
     
     // Add first pallet row automatically
     addPalletRow();
@@ -45,17 +33,172 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('qcForm').addEventListener('submit', function(e) {
         e.preventDefault();
     });
+    
+    // Add date validation listeners
+    setupDateValidation();
 });
 
 // ============================================
-// POPULATE STANDARDS
+// LOAD PRODUCT MATRIX FROM GOOGLE SHEETS
+// ============================================
+
+function loadProductMatrix() {
+    fetch(GOOGLE_SCRIPT_URL + '?action=getMatrix')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                STANDARD_MATRIX = data.matrix;
+                
+                // Populate product dropdown
+                populateProductDropdown();
+                
+                // Hide loading
+                hideLoading();
+                
+                // Show success message
+                console.log(`✓ Loaded ${data.totalProducts} products from matrix`);
+                
+            } else {
+                throw new Error(data.message || 'Failed to load product matrix');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading product matrix:', error);
+            hideLoading();
+            
+            // Show error and use fallback data
+            Swal.fire({
+                icon: 'warning',
+                title: 'Could not load product matrix',
+                html: 'Using default products. Please check your internet connection or contact IT support.<br><br>' +
+                      '<small>Error: ' + error.message + '</small>',
+                confirmButtonColor: '#667eea'
+            }).then(() => {
+                // Use fallback sample data
+                useFallbackMatrix();
+                populateProductDropdown();
+            });
+        });
+}
+
+function useFallbackMatrix() {
+    // Fallback data in case Google Sheets is unavailable
+    STANDARD_MATRIX = {
+        'Candy Apple 50g': {
+            itemCode: 'CA-50G',
+            pcsPerBag: 24,
+            shelfLifeDays: 365,
+            lines: ['Line 1', 'Line 2', 'Line 3'],
+            box: { pCode: 'CA50-BOX-001', content: '24 pcs', color: 'Red' },
+            sachet: { seal: '0%', pCode: 'CA50-SCH-001' }
+        },
+        'Mint Fresh 25g': {
+            itemCode: 'MF-25G',
+            pcsPerBag: 48,
+            shelfLifeDays: 730,
+            lines: ['Line 1', 'Line 2', 'Line 3', 'Line 4'],
+            box: { pCode: 'MF25-BOX-005', content: '48 pcs', color: 'Green' },
+            sachet: { seal: '0%', pCode: 'MF25-SCH-005' }
+        }
+    };
+}
+
+function showLoading(message) {
+    const spinner = document.getElementById('loadingSpinner');
+    if (spinner) {
+        spinner.classList.add('active');
+    }
+}
+
+function hideLoading() {
+    const spinner = document.getElementById('loadingSpinner');
+    if (spinner) {
+        spinner.classList.remove('active');
+    }
+}
+
+// ============================================
+// REFRESH PRODUCT MATRIX
+// ============================================
+
+function refreshProductMatrix() {
+    Swal.fire({
+        title: 'Refresh Product Matrix?',
+        text: 'This will reload all products from the Google Sheet.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#667eea',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, refresh',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            showLoading('Reloading products...');
+            loadProductMatrix();
+        }
+    });
+}
+
+// ============================================
+// POPULATE DROPDOWNS FROM STANDARD MATRIX
+// ============================================
+
+function populateProductDropdown() {
+    const productSelect = document.getElementById('productItem');
+    productSelect.innerHTML = '<option value="">-- Select Product --</option>';
+    
+    // Add products from standard matrix
+    Object.keys(STANDARD_MATRIX).forEach(product => {
+        const option = document.createElement('option');
+        option.value = product;
+        option.textContent = product;
+        productSelect.appendChild(option);
+    });
+}
+
+function updateLineDropdown(selectedProduct) {
+    const lineInput = document.getElementById('line');
+    
+    if (selectedProduct && STANDARD_MATRIX[selectedProduct]) {
+        const product = STANDARD_MATRIX[selectedProduct];
+        
+        // Convert input to datalist for suggestions
+        const existingDatalist = document.getElementById('lineDatalist');
+        if (existingDatalist) {
+            existingDatalist.remove();
+        }
+        
+        const datalist = document.createElement('datalist');
+        datalist.id = 'lineDatalist';
+        
+        product.lines.forEach(line => {
+            const option = document.createElement('option');
+            option.value = line;
+            datalist.appendChild(option);
+        });
+        
+        lineInput.setAttribute('list', 'lineDatalist');
+        lineInput.parentNode.appendChild(datalist);
+        
+        // Show available lines info
+        const linesText = product.lines.join(', ');
+        lineInput.placeholder = `Available: ${linesText}`;
+    } else {
+        lineInput.removeAttribute('list');
+        lineInput.placeholder = 'e.g., Line 1, Machine A';
+    }
+}
+
+// ============================================
+// POPULATE STANDARDS & VALIDATE DATES
 // ============================================
 
 function populateStandards() {
     const product = document.getElementById('productItem').value;
+    selectedProduct = product;
     
-    if (product && PRODUCT_STANDARDS[product]) {
-        const std = PRODUCT_STANDARDS[product];
+    if (product && STANDARD_MATRIX[product]) {
+        const std = STANDARD_MATRIX[product];
         
         // Populate Display Box standards
         document.getElementById('stdBoxPCode').value = std.box.pCode;
@@ -65,6 +208,16 @@ function populateStandards() {
         // Populate Bag/Sachet standards
         document.getElementById('stdSachetSeal').value = std.sachet.seal;
         document.getElementById('stdSachetPCode').value = std.sachet.pCode;
+        
+        // Update line dropdown with available lines
+        updateLineDropdown(product);
+        
+        // Show product info alert
+        showProductInfo(product, std);
+        
+        // Validate dates if already filled
+        validateDates();
+        
     } else {
         // Clear standards if no product selected
         document.getElementById('stdBoxPCode').value = '';
@@ -72,6 +225,154 @@ function populateStandards() {
         document.getElementById('stdBoxColor').value = '';
         document.getElementById('stdSachetSeal').value = '0%';
         document.getElementById('stdSachetPCode').value = '';
+        
+        // Clear line suggestions
+        updateLineDropdown(null);
+        
+        selectedProduct = null;
+    }
+}
+
+function showProductInfo(product, std) {
+    const shelfLifeMonths = Math.floor(std.shelfLifeDays / 30);
+    
+    Swal.fire({
+        icon: 'info',
+        title: 'Product Information',
+        html: `
+            <div style="text-align: left; padding: 10px;">
+                <table style="width: 100%; font-size: 14px;">
+                    <tr>
+                        <td style="padding: 8px;"><strong>Product:</strong></td>
+                        <td style="padding: 8px;">${product}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px;"><strong>Item Code:</strong></td>
+                        <td style="padding: 8px;">${std.itemCode}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px;"><strong>Pcs/Bag:</strong></td>
+                        <td style="padding: 8px;">${std.pcsPerBag} pieces</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px;"><strong>Shelf Life:</strong></td>
+                        <td style="padding: 8px; color: #dc3545; font-weight: bold;">${std.shelfLifeDays} days (${shelfLifeMonths} months)</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px;"><strong>Available Lines:</strong></td>
+                        <td style="padding: 8px;">${std.lines.join(', ')}</td>
+                    </tr>
+                </table>
+                <hr style="margin: 15px 0;">
+                <p style="color: #856404; background: #fff3cd; padding: 10px; border-radius: 5px; font-size: 13px;">
+                    <i class="fas fa-exclamation-triangle"></i> 
+                    <strong>Important:</strong> Please ensure Production Date and Expiration Date match the shelf life of <strong>${std.shelfLifeDays} days</strong>.
+                </p>
+            </div>
+        `,
+        confirmButtonColor: '#667eea',
+        confirmButtonText: 'Got it!',
+        width: '600px'
+    });
+}
+
+// ============================================
+// DATE VALIDATION
+// ============================================
+
+function setupDateValidation() {
+    document.getElementById('prodDate').addEventListener('change', validateDates);
+    document.getElementById('expDate').addEventListener('change', validateDates);
+}
+
+function validateDates() {
+    const product = document.getElementById('productItem').value;
+    const prodDateInput = document.getElementById('prodDate');
+    const expDateInput = document.getElementById('expDate');
+    
+    if (!product || !STANDARD_MATRIX[product]) return;
+    if (!prodDateInput.value || !expDateInput.value) return;
+    
+    const prodDate = new Date(prodDateInput.value);
+    const expDate = new Date(expDateInput.value);
+    const shelfLifeDays = STANDARD_MATRIX[product].shelfLifeDays;
+    
+    // Calculate expected expiration date
+    const expectedExpDate = new Date(prodDate);
+    expectedExpDate.setDate(expectedExpDate.getDate() + shelfLifeDays);
+    
+    // Calculate difference in days
+    const diffTime = expDate - prodDate;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    // Check if dates are valid
+    if (expDate <= prodDate) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Invalid Date Range',
+            text: 'Expiration date must be after production date!',
+            confirmButtonColor: '#667eea'
+        });
+        expDateInput.value = '';
+        return;
+    }
+    
+    // Check if shelf life matches
+    if (diffDays !== shelfLifeDays) {
+        const expectedExpDateStr = expectedExpDate.toISOString().split('T')[0];
+        
+        Swal.fire({
+            icon: 'warning',
+            title: 'Shelf Life Mismatch!',
+            html: `
+                <div style="text-align: left; padding: 10px;">
+                    <p><strong>Product:</strong> ${product}</p>
+                    <p><strong>Standard Shelf Life:</strong> <span style="color: #dc3545; font-weight: bold;">${shelfLifeDays} days</span></p>
+                    <hr>
+                    <p><strong>Your Input:</strong></p>
+                    <ul>
+                        <li>Production Date: ${prodDateInput.value}</li>
+                        <li>Expiration Date: ${expDateInput.value}</li>
+                        <li>Calculated Shelf Life: <span style="color: ${diffDays === shelfLifeDays ? 'green' : 'red'}; font-weight: bold;">${diffDays} days</span></li>
+                    </ul>
+                    <hr>
+                    <p style="background: #d1ecf1; padding: 10px; border-radius: 5px; color: #0c5460;">
+                        <i class="fas fa-info-circle"></i> <strong>Expected Expiration Date:</strong><br>
+                        <span style="font-size: 18px; font-weight: bold;">${expectedExpDateStr}</span>
+                    </p>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#667eea',
+            confirmButtonText: 'Use Expected Date',
+            cancelButtonText: 'Keep My Date',
+            width: '600px'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Auto-correct to expected date
+                expDateInput.value = expectedExpDateStr;
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Date Corrected',
+                    text: 'Expiration date has been set to match shelf life.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            }
+        });
+    } else {
+        // Dates are correct, show success
+        Swal.fire({
+            icon: 'success',
+            title: 'Dates Validated!',
+            html: `
+                <p>Production and expiration dates match the shelf life.</p>
+                <p><strong>Shelf Life:</strong> ${shelfLifeDays} days ✓</p>
+            `,
+            timer: 2000,
+            showConfirmButton: false
+        });
     }
 }
 
@@ -86,7 +387,10 @@ function addPalletRow() {
     const row = document.createElement('tr');
     row.id = `palletRow${palletCount}`;
     row.innerHTML = `
-        <td class="pallet-number">${palletCount}</td>
+        <td>
+            <input type="number" class="form-control" id="noPallet${palletCount}" 
+                   min="1" placeholder="#" value="${palletCount}" required>
+        </td>
         <td>
             <input type="time" class="form-control" id="time${palletCount}" required>
         </td>
@@ -133,7 +437,7 @@ function addPalletRow() {
             <input type="text" class="form-control percent-ok" id="percentOK${palletCount}" readonly>
         </td>
         <td>
-            <input type="text" class="form-control" id="notes${palletCount}" placeholder="Notes">
+            <textarea class="form-control" id="notes${palletCount}" rows="2" placeholder="Notes..."></textarea>
         </td>
         <td class="text-center">
             <button type="button" class="btn btn-danger btn-sm" onclick="removePalletRow(${palletCount})" 
@@ -256,6 +560,38 @@ function resetForm() {
 // FORM SUBMISSION
 // ============================================
 
+function generateFormNumber(formData) {
+    // Format: XXX/AREA/MONTH/YEAR
+    // XXX = sequential number (we'll use timestamp-based)
+    // AREA = from line/machine (default PG for Packing)
+    // MONTH = Roman numeral
+    // YEAR = current year
+    
+    const now = new Date();
+    const year = now.getFullYear();
+    
+    // Convert month to Roman numerals
+    const monthRoman = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+    const month = monthRoman[now.getMonth()];
+    
+    // Generate sequential number from timestamp (last 3 digits)
+    const timestamp = now.getTime();
+    const seqNumber = String(timestamp).slice(-3);
+    
+    // Extract area from line (or default to PG)
+    let area = 'PG'; // Default: Packing General
+    if (formData.line) {
+        // If line contains number, use it (e.g., "Line 1" -> "L1")
+        const lineMatch = formData.line.match(/\d+/);
+        if (lineMatch) {
+            area = 'L' + lineMatch[0];
+        }
+    }
+    
+    // Format: 123/PG/XI/2025
+    return `${seqNumber}/${area}/${month}/${year}`;
+}
+
 function submitForm() {
     const form = document.getElementById('qcForm');
     
@@ -277,14 +613,20 @@ function submitForm() {
         return;
     }
     
-    // Collect Section 1 data
+    // Collect Section 1 data (without formNumber yet)
     const formData = {
-        formNumber: document.getElementById('formNumber').value,
         checkDate: document.getElementById('checkDate').value,
+        prodDate: document.getElementById('prodDate').value,
+        expDate: document.getElementById('expDate').value,
         shift: document.getElementById('shift').value,
         productItem: document.getElementById('productItem').value,
         line: document.getElementById('line').value,
         group: document.getElementById('group').value,
+        
+        // Add matrix data
+        itemCode: selectedProduct && STANDARD_MATRIX[selectedProduct] ? STANDARD_MATRIX[selectedProduct].itemCode : '',
+        shelfLifeDays: selectedProduct && STANDARD_MATRIX[selectedProduct] ? STANDARD_MATRIX[selectedProduct].shelfLifeDays : '',
+        pcsPerBag: selectedProduct && STANDARD_MATRIX[selectedProduct] ? STANDARD_MATRIX[selectedProduct].pcsPerBag : '',
         
         // Standards
         stdBoxPCode: document.getElementById('stdBoxPCode').value,
@@ -303,11 +645,14 @@ function submitForm() {
         palletChecks: []
     };
     
+    // Generate form number automatically
+    formData.formNumber = generateFormNumber(formData);
+    
     // Collect all pallet check data
-    rows.forEach((row, index) => {
+    rows.forEach((row) => {
         const rowId = row.id.replace('palletRow', '');
         const palletData = {
-            noPallet: index + 1,
+            noPallet: document.getElementById(`noPallet${rowId}`).value,
             time: document.getElementById(`time${rowId}`).value,
             totalCheck: document.getElementById(`totalCheck${rowId}`).value,
             boxPCode: document.getElementById(`boxPCode${rowId}`).value,
@@ -337,13 +682,22 @@ function submitForm() {
         // Hide loading spinner
         document.getElementById('loadingSpinner').classList.remove('active');
         
-        // Show success message
+        // Show success message with generated form number
         Swal.fire({
             icon: 'success',
             title: 'Success!',
-            html: `Form <strong>${formData.formNumber}</strong> has been submitted successfully!`,
+            html: `<div style="text-align: left;">
+                    <p><strong>Form has been submitted successfully!</strong></p>
+                    <hr>
+                    <p><strong>Form Number:</strong> <span style="color: #667eea; font-size: 20px; font-weight: bold;">${formData.formNumber}</span></p>
+                    <p><strong>Date:</strong> ${formData.checkDate}</p>
+                    <p><strong>Product:</strong> ${formData.productItem}</p>
+                    <p><strong>Total Pallets Checked:</strong> ${formData.palletChecks.length}</p>
+                    <p><strong>QC Personnel:</strong> ${formData.qcPersonnel}</p>
+                   </div>`,
             confirmButtonColor: '#667eea',
-            confirmButtonText: 'OK'
+            confirmButtonText: 'OK',
+            width: '600px'
         }).then(() => {
             // Ask if user wants to create another form
             Swal.fire({

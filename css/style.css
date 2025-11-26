@@ -141,7 +141,8 @@ body {
 }
 
 .checking-table input,
-.checking-table select {
+.checking-table select,
+.checking-table textarea {
     font-size: 13px;
     padding: 6px 8px;
 }
@@ -149,6 +150,11 @@ body {
 .checking-table .form-control,
 .checking-table .form-select {
     min-width: 80px;
+}
+
+.checking-table textarea {
+    resize: vertical;
+    min-height: 50px;
 }
 
 .table-primary {
